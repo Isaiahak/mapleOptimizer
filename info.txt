@@ -1,0 +1,15 @@
+this is a boss analysis optimizer used for people progging destiny missions and wanting to have their vods anaylzed for fast suggests to help with clears
+
+
+goal: 
+
+- watch cooldowns 
+
+- consider tests and boss iframes
+
+- indicate when players can improve burst
+
+- upload a video of the run and have it anaylzed
+
+- implement stream analysis 
+
