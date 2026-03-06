@@ -2,11 +2,11 @@ package main
 
 import(
 	"mapleOptimizer/utils"
-	"fmt"
 )
 
 
 func main(){
-	fmt.Println("Hello World") 
-	utils.GetCharacters()
+	utils.GetIcons("/w/Sia_Astelle")
+	utils.GetIcons("/w/Mo_Xuan")
+	utils.GetIcons("/w/Lynn")
 }

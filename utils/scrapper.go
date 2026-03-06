@@ -3,8 +3,10 @@ package utils
 import(
 	"net/http"
 	"fmt"
+	"strings"
 	"io"
 	"bytes"
+	"os"
 	
 )
 
@@ -12,9 +14,63 @@ var baseUrl = "https://maplestorywiki.net"
 
 var characters = "https://maplestorywiki.net/w/Characters_and_Skills"
 
+var classes = map[string]string{
+	"Hero": "Hero",
+	"Paladin": "Pally",
+	"Dark_Knight": "DK",
+	"Arch_Mage_(Fire,_Poison)": "FP",
+	"Arch_Mage_(Ice,_Lightning)": "IL",
+	"Bishop": "Bishop",
+	"Bow_Master": "Bowmaster",
+	"Marksman": "Marksman",
+	"Pathfinder": "PathFinder",
+	"Night_Lord": "NL",
+	"Shadower": "Shadower",
+	"Dual_Blade":"DB",
+	"Buccaneer":"Bucc",
+	"Corsair": "Corsair",
+	"Cannoneer": "CM",
+	"Dawn_Warrior": "DW",
+	"Blaze_Wizard": "BW",
+	"Wind_Archer": "WA",
+	"Night_Walker": "NW",
+	"Thunder_Breaker": "TB",
+	"Aran":"Aran",
+	"Evan": "Evan",
+	"Mercedes": "Mercedes",
+	"Phantom": "Phantom",
+	"Shade": "Shade",
+	"Luminous": "Luminous",
+	"Demon_Slayer": "DS",
+	"Demon_Avenger": "DA",
+	"Battle_Mage": "BM",
+	"Wild_Hunter": "WH",
+	"Mechanic": "Mechanic",
+	"Xenon": "Xenon",
+	"Blaster": "Blaster",
+	"Hayato": "Hayato",
+	"Kanna": "Kanna",
+	"Mihile": "Mihile",
+	"Kaiser": "Kaiser",
+	"Kain": "Kain",
+	"Cadena": "Cadena",
+	"Angelic_Buster": "AB",
+	"Zero": "Zero",
+	"Saitama":"Saitama",
+	"Kinesis": "Kinesis",
+	"Adele": "Adele",
+	"Illium": "Illium",
+	"Khali": "Khali",
+	"Ark": "Ark",
+	"Ren": "Ren",
+	"Lara": "Lara",
+	"Hoyoung": "Hoyoung",
+	"Lynn": "Lynn",
+	"Mo_Xuan": "MX",
+	"Sia_Astelle": "Sia",
+}
 
-
-// retrieves all class icons from each maplestory class
+// retrieves all class icons from each maplestory class,
 func GetAllIcons(){
 	
 }
@@ -88,7 +144,7 @@ func GetCharacters(){
 			}
 		}
 	}
-	
+
 	for _,url := range urls{
 		if url == ""{
 			continue
@@ -97,11 +153,11 @@ func GetCharacters(){
 		}
 	}
 
-
 }
 
 //retrieves all class icons from the specified maplestory class
 func GetIcons(class string){
+	
 	url := baseUrl + class + "/Skills"
 	fmt.Println("url is: ", url)
 
@@ -175,13 +231,31 @@ func GetIcons(class string){
 			continue
 		} else {
 			// do i request to each image url and save response to a png file in the corresponding class file
-			fmt.Println("image url:", url)
+			fmt.Println("image url:", url,"for: ", class[3:])
 			saveIconImage(url, class[3:])
 		}
 	}
 }
 
 func saveIconImage(url, class string){
+	
+	resp, err := http.Get(url)
+	if err != nil{
+		panic(err)
+	}
+	defer resp.Body.Close()
 
+	var output bytes.Buffer
+	io.Copy(&output, resp.Body)
+
+	_,end,_ := strings.Cut(url, "yetidb/")
+	skillName,_,_ := strings.Cut(end, ".png")
+
+	err = os.WriteFile("./resources/skill-icons/" + classes[class]	+ "/" + skillName + ".png", output.Bytes(), 0666 )
+	if err != nil{
+		panic(err)
+	}
 	
 }
+
+
