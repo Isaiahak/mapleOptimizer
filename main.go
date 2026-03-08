@@ -5,5 +5,6 @@ import (
 )
 
 func main() {
-	utils.LoadAllImages()
+	utils.LoadAllImages(1)
+	utils.LoadAllimages(2)
 }
