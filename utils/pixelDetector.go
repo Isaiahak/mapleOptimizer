@@ -2,11 +2,16 @@ package utils
 
 import (
 	"bytes"
+	"unsafe"
+	rl "github.com/gen2brain/raylib-go/raylib"
+	"log"
 	"fmt"
+	"io"
 	"image"
 	"image/png"
 	"io/fs"
 	"os"
+	"os/exec"
 )
 
 /*
@@ -140,4 +145,69 @@ func getImage(name string) image.Image {
 	}
 
 	return image
+}
+
+func LoadVideo(){
+	resolution, err := exec.Command("ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=s=x:p=0", "resources/test.mp4").Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dim := bytes.Split(resolution, []byte("x"))
+
+
+	height, width := int(dim[0][0]), int(dim[1][0])
+	
+	fmt.Println(string(height),string(width))
+	cmd := exec.Command("ffmpeg", "-i", "resources/test.mp4", "-vf", "fps=1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-")
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := cmd.Start(); err != nil{
+		log.Fatal(err)
+	}
+
+	frameSize := height*width*3
+	var buf =  make([]byte, frameSize)
+	
+	rl.InitWindow(int32(width),int32(height), "screen shot")
+	defer rl.CloseWindow()
+	
+	_,err = io.ReadFull(stdout, buf)
+	if err != nil {
+		if err == io.EOF{
+			log.Fatal(err)	
+		} else {
+			log.Fatal(err)
+		}
+	}
+
+	for !rl.WindowShouldClose(){
+		rl.BeginDrawing()	
+		rl.ClearBackground(rl.RayWhite)
+		// draw buffer
+
+		img := rl.Image{
+			Width: int32(width),
+			Height: int32(height),
+			Mipmaps: 1,
+			Format: rl.UncompressedR8g8b8,
+			Data: unsafe.Pointer(&buf[0]),
+		}
+
+		texture := rl.LoadTextureFromImage(&img)
+		rl.UnloadImage(&img)
+		rl.DrawTexture(texture,0,0, rl.White)
+		rl.EndDrawing()
+	}
+
+	if err := cmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
+
+
+
 }

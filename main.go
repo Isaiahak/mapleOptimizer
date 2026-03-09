@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	utils.LoadAllImages(1)
+	utils.LoadVideo()
 }
