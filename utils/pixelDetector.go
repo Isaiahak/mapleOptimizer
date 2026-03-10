@@ -2,16 +2,19 @@ package utils
 
 import (
 	"bytes"
-	"unsafe"
-	rl "github.com/gen2brain/raylib-go/raylib"
-	"log"
 	"fmt"
-	"io"
+	rl "github.com/gen2brain/raylib-go/raylib"
 	"image"
+	"image/color"
 	"image/png"
+	"io"
 	"io/fs"
+	"log"
 	"os"
 	"os/exec"
+	"strconv"
+	"strings"
+	"unsafe"
 )
 
 /*
@@ -147,67 +150,67 @@ func getImage(name string) image.Image {
 	return image
 }
 
-func LoadVideo(){
+func LoadVideo() {
 	resolution, err := exec.Command("ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=s=x:p=0", "resources/test.mp4").Output()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	dim := bytes.Split(resolution, []byte("x"))
+	dim := strings.Split(strings.TrimSpace(string(resolution)), "x")
 
+	height, err := strconv.ParseInt(dim[0], 10, 32)
+	if err != nil {
+		panic(err)
+	}
+	width, err := strconv.ParseInt(dim[1], 10, 32)
+	if err != nil {
+		panic(err)
+	}
 
-	height, width := int(dim[0][0]), int(dim[1][0])
-	
-	fmt.Println(string(height),string(width))
-	cmd := exec.Command("ffmpeg", "-i", "resources/test.mp4", "-vf", "fps=1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-")
+	fmt.Println(height, width)
+	// for actual algorithm
+	//cmd := exec.Command("ffmpeg", "-i", "resources/test.mp4", "-vf", "fps=1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-")
+	//for check with raylib
+	cmd := exec.Command("ffmpeg", "-i", "resources/test.mp4", "-vf", "fps=60", "-f", "rawvideo", "-pix_fmt", "rgba", "-")
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := cmd.Start(); err != nil{
+	if err := cmd.Start(); err != nil {
 		log.Fatal(err)
 	}
 
-	frameSize := height*width*3
-	var buf =  make([]byte, frameSize)
-	
-	rl.InitWindow(int32(width),int32(height), "screen shot")
+	frameSize := height * width * 4
+	var buf = make([]byte, frameSize)
+	rl.InitWindow(int32(width), int32(height), "screen shot")
+	rl.SetTargetFPS(60)
 	defer rl.CloseWindow()
-	
-	_,err = io.ReadFull(stdout, buf)
-	if err != nil {
-		if err == io.EOF{
-			log.Fatal(err)	
-		} else {
-			log.Fatal(err)
-		}
-	}
-
-	for !rl.WindowShouldClose(){
-		rl.BeginDrawing()	
-		rl.ClearBackground(rl.RayWhite)
-		// draw buffer
-
-		img := rl.Image{
-			Width: int32(width),
-			Height: int32(height),
-			Mipmaps: 1,
-			Format: rl.UncompressedR8g8b8,
-			Data: unsafe.Pointer(&buf[0]),
+	img := rl.GenImageColor(int(width), int(height), rl.Black)
+	texture := rl.LoadTextureFromImage(img)
+	rl.UnloadImage(img)
+	for !rl.WindowShouldClose() {
+		_, err = io.ReadFull(stdout, buf)
+		if err != nil {
+			if err == io.EOF {
+				log.Fatal(err)
+			} else {
+				log.Fatal(err)
+			}
 		}
 
-		texture := rl.LoadTextureFromImage(&img)
-		rl.UnloadImage(&img)
-		rl.DrawTexture(texture,0,0, rl.White)
+		rgba := unsafe.Slice((*color.RGBA)(unsafe.Pointer(&buf[0])), width*height)
+		rl.UpdateTexture(texture, rgba)
+
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.Black)
+		rl.DrawTexture(texture, 0, 0, rl.White)
 		rl.EndDrawing()
 	}
 
 	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
 	}
-
-
 
 }
