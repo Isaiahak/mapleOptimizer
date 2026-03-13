@@ -382,21 +382,21 @@ func checkCorrelation(histogram []float32, skillBar Rect, axis Axis) []float32 {
 }
 
 func checkHistogram(buf []byte, skillBar Rect, axis Axis) []float32 {
-	var size int64
+	var indexSize int64
 	switch axis {
 	case Vertical:
-		size = skillBar.width
+		indexSize = skillBar.width
 	case Horizontal:
-		size = skillBar.height
+		indexSize = skillBar.height
 	}
-	var histogram = make([]float32, size)
+	var histogram = make([]float32, indexSize)
 
 	var i int64 = 0
 	var index int64 = 0
 
 	switch axis {
 	case Vertical:
-		for ; i < size; i++ {
+		for ; i < indexSize; i++ {
 			var j int64 = 0
 			for ; j < skillBar.width; j += 4 {
 				rowStride := skillBar.width*4 + i
@@ -409,7 +409,7 @@ func checkHistogram(buf []byte, skillBar Rect, axis Axis) []float32 {
 		}
 
 	case Horizontal:
-		for ; i < size; i++ {
+		for ; i < indexSize; i++ {
 			var j int64 = 0
 			for ; j < skillBar.width*4; j += 4 {
 				histogram[i] += float32(buf[j] + buf[j+1] + buf[j+2])
