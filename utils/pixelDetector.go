@@ -385,18 +385,18 @@ func checkHistogram(buf []byte, skillBar Rect, axis Axis) []float32 {
 	var indexSize int64
 	switch axis {
 	case Vertical:
-		indexSize = skillBar.width
+		indexSize = 50 
 	case Horizontal:
-		indexSize = skillBar.height
+		indexSize = 50 
 	}
 	var histogram = make([]float32, indexSize)
 
 	var i int64 = 0
 	switch axis {
 	case Vertical:
-		for ; i < indexSize; i++ {
+		for ; i < skillBar.height; i++ {
 			var j int64 = 0
-			for ; j < skillBar.width; j += 4 {
+			for ; j < indexSize*4; j += 4 {
 				rowStride := skillBar.width*4 + i
 				histogram[i] += float32(buf[rowStride+j] + buf[rowStride+j+1] + buf[rowStride+j+2])
 				//histogram[i] += float32(buf[rowStride + j])
